@@ -1,91 +1,87 @@
-const getConnection = require("../connection");
+const pool = require("../connection");
 
 class VirtualDataRoom {
-  constructor(id, name, ownerId, expiry, createdAt, access, defaultGuestPermission) {
+  constructor(id, name, ownerId, expiryDateTime, createdAt, access, defaultGuestPermission, viewCount = 0) {
     this.id = id;
     this.name = name;
+    
     this.ownerId = ownerId;
-    this.expiry = expiry;
-    this.createdAt = createdAt || new Date(); // Si createdAt est fourni, l'utiliser, sinon utiliser la date actuelle
+    this.expiryDateTime = expiryDateTime || null;
+    this.createdAt = createdAt || new Date();
     this.access = access;
     this.defaultGuestPermission = defaultGuestPermission;
+    this.viewCount = viewCount;
   }
 
   static async getAllVirtualDataRooms() {
-    const connection = await getConnection();
     try {
-      const [rows] = await connection.query('SELECT * FROM virtual_data_rooms');
-      return rows.map((row) => new VirtualDataRoom(row.id, row.name, row.ownerId, row.expiry, row.createdAt, row.access, row.defaultGuestPermission));
+      const [rows] = await pool.query('SELECT * FROM virtual_data_rooms');
+      return rows.map((row) => new VirtualDataRoom(row.id, row.name, row.ownerId, row.expiryDateTime, row.createdAt, row.access, row.defaultGuestPermission, row.viewCount));
     } catch (error) {
       console.error('Error fetching all virtual data rooms:', error);
       throw error;
-    } finally {
-      await connection.end();
     }
   }
 
   static async getVirtualDataRoomById(id) {
-    const connection = await getConnection();
     try {
-      const [rows] = await connection.query('SELECT * FROM virtual_data_rooms WHERE id = ?', [id]);
+      const [rows] = await pool.query('SELECT * FROM virtual_data_rooms WHERE id = ?', [id]);
       if (rows.length === 0) {
         return null;
       }
-      return new VirtualDataRoom(rows[0].id, rows[0].name, rows[0].ownerId, rows[0].expiry, rows[0].createdAt, rows[0].access, rows[0].defaultGuestPermission);
+      return new VirtualDataRoom(rows[0].id, rows[0].name, rows[0].ownerId, rows[0].expiryDateTime, rows[0].createdAt, rows[0].access, rows[0].defaultGuestPermission, rows[0].viewCount);
     } catch (error) {
       console.error('Error fetching virtual data room by ID:', error);
       throw error;
-    } finally {
-      await connection.end();
     }
   }
 
   async createVirtualDataRoom() {
-    const connection = await getConnection();
+    const query = 'INSERT INTO virtual_data_rooms (name, ownerId, expiryDateTime, createdAt, access, defaultGuestPermission, viewCount) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    const values = [this.name, this.ownerId, this.expiryDateTime, this.createdAt, this.access, this.defaultGuestPermission, this.viewCount];
     try {
-      const [result] = await connection.query(
-        'INSERT INTO virtual_data_rooms (name, ownerId, expiry, createdAt, access, defaultGuestPermission) VALUES (?, ?, ?, ?, ?, ?)', 
-        [this.name, this.ownerId, this.expiry, this.createdAt, this.access, this.defaultGuestPermission]
-      );
-      const [id] = await connection.query(
-        'SELECT LAST_INSERT_ID() as id '
-      );
-      return id ; 
+      const [result] = await pool.query(query, values);
+      this.id = result.insertId;
+      return this;
     } catch (error) {
       console.error('Error creating virtual data room:', error);
       throw error;
-    } finally {
-      await connection.end();
     }
   }
 
-  
-
   async updateVirtualDataRoom() {
-    const connection = await getConnection();
+    const query = 'UPDATE virtual_data_rooms SET name = ?, ownerId = ?, expiryDateTime = ?, access = ?, defaultGuestPermission = ?, viewCount = ? WHERE id = ?';
+    const values = [this.name, this.ownerId, this.expiryDateTime, this.access, this.defaultGuestPermission, this.viewCount, this.id];
     try {
-      await connection.query(
-        'UPDATE virtual_data_rooms SET name = ?, ownerId = ?, expiry = ?, access = ?, defaultGuestPermission = ? WHERE id = ?', 
-        [this.name, this.ownerId, this.expiry, this.access, this.defaultGuestPermission, this.id]
-      );
+      await pool.query(query, values);
     } catch (error) {
       console.error('Error updating virtual data room:', error);
       throw error;
-    } finally {
-      await connection.end();
     }
   }
 
   async deleteVirtualDataRoom() {
-    const connection = await getConnection();
     try {
-      await connection.query('DELETE FROM virtual_data_rooms WHERE id = ?', [this.id]);
+      await pool.query('DELETE FROM virtual_data_rooms WHERE id = ?', [this.id]);
     } catch (error) {
       console.error('Error deleting virtual data room:', error);
       throw error;
-    } finally {
-      await connection.end();
     }
+  }
+
+  async incrementViewCount() {
+    this.viewCount += 1;
+    try {
+      await pool.query('UPDATE virtual_data_rooms SET viewCount = ? WHERE id = ?', [this.viewCount, this.id]);
+    } catch (error) {
+      console.error('Error incrementing view count:', error);
+      throw error;
+    }
+  }
+
+  async canGuestPerformAction(guestId, action) {
+    // Implémenter la logique pour vérifier si l'invité peut effectuer une action spécifique
+    return true; // Placeholder pour l'exemple
   }
 }
 

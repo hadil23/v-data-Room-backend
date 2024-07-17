@@ -1,5 +1,5 @@
+const pool = require('../connection');
 
-const getConnection = require('../connection');
 class Panel {
   constructor(id, vdrId, name) {
     this.id = id;
@@ -8,19 +8,19 @@ class Panel {
   }
 
   static async getAllPanels() {
-    const connection = await getConnection();
+    const connection = await pool.getConnection();
     try {
       const [rows] = await connection.query('SELECT id, vdrId, name FROM panel');
       return rows.map((row) => new Panel(row.id, row.vdrId, row.name));
     } catch (error) {
       Panel.handleError(error);
     } finally {
-      await connection.end();
+      connection.release();
     }
   }
 
   static async getPanelById(id) {
-    const connection = await getConnection();
+    const connection = await pool.getConnection();
     try {
       const [rows] = await connection.query('SELECT id, vdrId, name FROM panel WHERE id = ?', [id]);
       if (rows.length === 0) {
@@ -30,13 +30,12 @@ class Panel {
     } catch (error) {
       Panel.handleError(error);
     } finally {
-      await connection.end();
+      connection.release();
     }
   }
 
- 
   static async createPanel(vdrId, name) {
-    const connection = await getConnection();
+    const connection = await pool.getConnection();
     try {
       const [result] = await connection.query('INSERT INTO panel (vdrId, name) VALUES (?, ?)', [vdrId, name]);
       const [rows] = await connection.query('SELECT LAST_INSERT_ID() AS id'); // Retrieve the generated ID
@@ -44,35 +43,35 @@ class Panel {
     } catch (error) {
       Panel.handleError(error);
     } finally {
-      await connection.end();
+      connection.release();
     }
   }
 
   static async updatePanel(id, vdrId, name) {
-    const connection = await getConnection();
+    const connection = await pool.getConnection();
     try {
       await connection.query('UPDATE panel SET vdrId = ?, name = ? WHERE id = ?', [vdrId, name, id]);
     } catch (error) {
       Panel.handleError(error);
     } finally {
-      await connection.end();
+      connection.release();
     }
   }
 
   static async deletePanel(id) {
-    const connection = await getConnection();
+    const connection = await pool.getConnection();
     try {
       await connection.query('DELETE FROM panel WHERE id = ?', [id]);
     } catch (error) {
       Panel.handleError(error);
     } finally {
-      await connection.end();
+      connection.release();
     }
   }
 
   static handleError(error) {
     console.error(error);
-    throw error; 
+    throw error;
   }
 }
 

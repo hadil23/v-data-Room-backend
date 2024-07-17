@@ -1,93 +1,80 @@
-const getConnection = require('../connection');
-//const sendToken = require('../utils/jwtToken');
-const jwt = require('jsonwebtoken');
+const pool = require('../connection');
+
 class Invitation {
-    constructor(id, email, permissions, accessExpiry, message, userId, fileId) {
+    constructor(id, email, firstName, lastName, newEmail, newFirstName, newLastName, userId, virtualDataRoomId) {
         this.id = id;
         this.email = email;
-        this.permissions = permissions;
-        this.accessExpiry = accessExpiry;
-        this.message = message;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.newEmail = newEmail;
+        this.newFirstName = newFirstName;
+        this.newLastName = newLastName;
         this.userId = userId;
-        this.fileId = fileId;
+        this.virtualDataRoomId = virtualDataRoomId;
     }
 
     static async getAllInvitations() {
-        const connection = await getConnection();
         try {
-            const [rows] = await connection.query('SELECT * FROM Invitation');
-            return rows.map(row => new Invitation(row.id, row.email, row.permissions, row.accessExpiry, row.message, row.userId, row.fileId));
+            const [rows] = await pool.query('SELECT * FROM invitations');
+            return rows.map(row => new Invitation(row.id, row.email, row.firstName, row.lastName, row.newEmail, row.newFirstName, row.newLastName, row.userId, row.virtualDataRoomId));
         } catch (error) {
             console.error('Error fetching all invitations:', error);
             throw error;
-        } finally {
-            await connection.end();
-        }
-    }
-
-    static async getInvitationById(id) {
-        const connection = await getConnection();
-        try {
-            const [rows] = await connection.query('SELECT * FROM Invitation WHERE id = ?', [id]);
-            if (rows.length === 0) return null;
-            return new Invitation(rows[0].id, rows[0].email, rows[0].permissions, rows[0].accessExpiry, rows[0].message, rows[0].userId, rows[0].fileId);
-        } catch (error) {
-            console.error(`Error fetching invitation with ID ${id}:`, error);
-            throw error;
-        } finally {
-            await connection.end();
         }
     }
 
     static async getInvitationByEmail(email) {
-        const connection = await getConnection();
         try {
-            const [rows] = await connection.query('SELECT * FROM Invitation WHERE email = ?', [email]);
-            if (rows.length === 0) return null;
-            return new Invitation(rows[0].id, rows[0].email, rows[0].permissions, rows[0].accessExpiry, rows[0].message, rows[0].userId, rows[0].fileId);
+            const [rows] = await pool.query('SELECT * FROM invitations WHERE email = ?', [email]);
+            return rows[0] || null;
         } catch (error) {
-            console.error(`Error fetching invitation with email ${email}:`, error);
+            console.error('Error fetching invitation by email:', error);
             throw error;
-        } finally {
-            await connection.end();
+        }
+    }
+
+    static async getInvitationById(id) {
+        try {
+            const [rows] = await pool.query('SELECT * FROM invitations WHERE id = ?', [id]);
+            if (rows.length === 0) return null;
+            return new Invitation(rows[0].id, rows[0].email, rows[0].firstName, rows[0].lastName, rows[0].newEmail, rows[0].newFirstName, rows[0].newLastName, rows[0].userId, rows[0].virtualDataRoomId);
+        } catch (error) {
+            console.error(`Error fetching invitation with ID ${id}:`, error);
+            throw error;
         }
     }
 
     async createInvitation() {
-        const connection = await getConnection();
-       
         try {
-            await connection.query('INSERT INTO invitation (email, permissions, accessExpiry, message, userId, fileId) VALUES (?, ?, ?, ?, ?, ?)', [this.email, JSON.stringify(this.permissions), this.accessExpiry, this.message, this.userId, this.fileId]);
+            const result = await pool.query(
+                'INSERT INTO invitations (email, firstName, lastName, newEmail, newFirstName, newLastName, userId, virtualDataRoomId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [this.email, this.firstName, this.lastName, this.newEmail, this.newFirstName, this.newLastName, this.userId, this.virtualDataRoomId]
+            );
+            this.id = result.insertId;
         } catch (error) {
             console.error('Error creating invitation:', error);
             throw error;
-        } finally {
-            await connection.end();
         }
     }
 
     async updateInvitation() {
-        const connection = await getConnection();
-        console.log(this.permissions , "ssssssssssssssss")
         try {
-            await connection.query('UPDATE Invitation SET email = ?, permissions = ?, accessExpiry = ?, message = ?, userId = ?, fileId = ? WHERE id = ?', [this.email, this.permissions, this.accessExpiry, this.message, this.userId, this.fileId, this.id]);
+            await pool.query(
+                'UPDATE invitations SET email = ?, firstName = ?, lastName = ?, newEmail = ?, newFirstName = ?, newLastName = ?, userId = ?, virtualDataRoomId = ? WHERE id = ?',
+                [this.email, this.firstName, this.lastName, this.newEmail, this.newFirstName, this.newLastName, this.userId, this.virtualDataRoomId, this.id]
+            );
         } catch (error) {
             console.error('Error updating invitation:', error);
             throw error;
-        } finally {
-            await connection.end();
         }
     }
 
     async deleteInvitation() {
-        const connection = await getConnection();
         try {
-            await connection.query('DELETE FROM Invitation WHERE id = ?', [this.id]);
+            await pool.query('DELETE FROM invitations WHERE id = ?', [this.id]);
         } catch (error) {
             console.error('Error deleting invitation:', error);
             throw error;
-        } finally {
-            await connection.end();
         }
     }
 }
