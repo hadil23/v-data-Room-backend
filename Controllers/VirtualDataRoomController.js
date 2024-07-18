@@ -20,23 +20,30 @@ const getAllVirtualDataRooms = async (req, res) => {
     const virtualDataRooms = await VirtualDataRoom.getAllVirtualDataRooms();
     res.json(virtualDataRooms);
   } catch (error) {
-    handleError(error, res);
+    console.error('Error fetching all virtual data rooms:', error);
+    res.status(500).send({ error: 'An error occurred while fetching the virtual data rooms' });
   }
 };
 
 const getVirtualDataRoomById = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = parseInt(req.params.id, 10);
+
+  if (isNaN(id)) {
+      return res.status(400).send({ error: 'Invalid ID' });
+  }
+
   try {
-    const virtualDataRoom = await VirtualDataRoom.getVirtualDataRoomById(id);
-    if (virtualDataRoom) {
-      res.json(virtualDataRoom);
-    } else {
-      res.status(404).send('Virtual data room not found');
-    }
+      const virtualDataRoom = await VirtualDataRoom.getVirtualDataRoomById(id);
+      if (!virtualDataRoom) {
+          return res.status(404).send({ error: 'Virtual Data Room not found' });
+      }
+      res.send(virtualDataRoom);
   } catch (error) {
-    handleError(error, res);
+      console.error(`Error fetching virtual data room by ID: ${error}`);
+      res.status(500).send({ error: 'An error occurred while fetching the virtual data room' });
   }
 };
+
 
 const createVirtualDataRoom = async (req, res) => {
   try {
@@ -134,25 +141,9 @@ const editContent = async (req, res) => {
   }
 };
 
-const checkInvitationTab = async (req, res) => {
-  try {
-    const [virtualDataRooms] = await pool.query('SELECT * FROM virtual_data_rooms');
 
-    // Récupérer les invitations pour toutes les salles de données virtuelles avec LEFT JOIN
-    const [invitations] = await pool.query('SELECT invitations.*, virtual_data_rooms.name AS roomName FROM invitations LEFT JOIN virtual_data_rooms ON invitations.room_id = virtual_data_rooms.id');
 
-    // Utiliser un tableau pour collecter les résultats avec les invitations et les salles de données virtuelles
-    const result = virtualDataRooms.map(room => {
-      const roomInvitations = invitations.filter(invitation => invitation.room_id === room.id);
-      return { ...room, invitations: roomInvitations };
-    });
 
-    res.status(200).json(result);
-  } catch (error) {
-    handleError(error, res);
-  }
-  
-};
 const incrementViewCount = async (req, res) => {
   const id = parseInt(req.params.id, 10); // Ensure id is a number
   if (isNaN(id)) {
@@ -180,6 +171,5 @@ module.exports = {
   deleteVirtualDataRoom,
   downloadFile,
   editContent,
-  checkInvitationTab,
   incrementViewCount
 };

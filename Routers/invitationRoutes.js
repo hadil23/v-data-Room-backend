@@ -4,7 +4,7 @@ const router = express.Router();
 const invitationController = require('../Controllers/invitationController');
 const accessControl = require ('../Middlewares/accessControl');
 
-
+router.get('/getAllInvitationsWithStatus', invitationController.getAllInvitationsWithStatus);
 router.get('/invitations', invitationController.getAllInvitations);
 router.get('/:id', invitationController.getInvitationById);
 router.post('/',accessControl, invitationController.createInvitation);

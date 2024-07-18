@@ -23,6 +23,7 @@ class VirtualDataRoom {
     }
   }
 
+
   static async getVirtualDataRoomById(id) {
     try {
       const [rows] = await pool.query('SELECT * FROM virtual_data_rooms WHERE id = ?', [id]);
@@ -84,5 +85,7 @@ class VirtualDataRoom {
     return true; // Placeholder pour l'exemple
   }
 }
+
+
 
 module.exports = VirtualDataRoom;

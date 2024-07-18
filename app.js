@@ -20,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', userRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/invitations', invitationRoutes);
+
 app.use('/api/pdf', pdfRoutes);
 app.use('/api/panel',panelRoutes);
 app.use('/api/auth', authRoutes);

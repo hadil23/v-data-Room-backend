@@ -63,6 +63,7 @@ exports.createInvitation = async (req, res, next) => {
         message: "Invitation already exists",
       });
     }
+   
 
     const newInvitation = new Invitation(
       null,
@@ -149,5 +150,24 @@ exports.deleteInvitation = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: `Error deleting invitation with ID ${id}`, error });
+  }
+};
+ 
+exports.getAllInvitationsWithStatus = async (req, res) => {
+  try {
+    // Logique pour récupérer les invitations avec les statuts
+    const [virtualDataRooms] = await pool.query('SELECT * FROM virtual_data_rooms');
+    const [invitations] = await pool.query('SELECT * FROM invitations');
+
+    const result = virtualDataRooms.map(room => {
+      const roomInvitations = invitations.filter(invitation => invitation.virtualDataRoomId === room.id);
+      const status = roomInvitations.length > 0 ? 'sended' : 'drafted';
+      return { virtualDataRoomId: room.id, status };
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error fetching invitations with status:', error);
+    res.status(500).json({ error: 'Error fetching invitations with status' });
   }
 };
