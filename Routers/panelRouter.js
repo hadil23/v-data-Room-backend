@@ -11,4 +11,6 @@ router.get('/:id', panelController.getPanelById);
 router.put('/:id', panelController.updatePanel);
 router.delete('/:id', panelController.deletePanel);
 router.post('/virtualDataRooms/savePanels', panelController.savePanels);
+router.get('/virtualDataRoom/:id/panels-and-files', panelController.getPanelsAndFilesByVdrId);
+router.get('/virtualDataRoom/:vdrId/panels', panelController.getPanelsByVdrId);
 module.exports = router;

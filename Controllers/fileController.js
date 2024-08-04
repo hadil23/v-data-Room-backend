@@ -79,9 +79,40 @@ const deleteFile = async (req, res) => {
     }
 };
 
+const uploadFileToPanel = async (req, res) => {
+    const { panel_id, user_id } = req.body;
+    const file = req.file;
+
+    if (!file) {
+        return res.status(400).json({ error: 'File is required' });
+    }
+
+    try {
+        const url = await File.uploadFileToCloudinary(file);
+        const createdFile = await File.createFile(url, user_id, panel_id);
+
+        res.status(201).json(createdFile); // Répondre avec les données du fichier créé
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        res.status(500).json({ error: 'An error occurred while uploading the file' });
+    }
+};
+
+const getFilesByPanelId = async (req, res) => {
+    const { panel_id } = req.params;
+    try {
+        const files = await File.getFilesByPanelId(panel_id);
+        res.status(200).json(files);
+    } catch (error) {
+        console.error('Error fetching files by panel ID:', error);
+        res.status(500).json({ error: 'An error occurred while fetching files by panel ID' });
+    }
+};
 module.exports = {
     createFile,
     getFileUrlById,
+    getFilesByPanelId,
     updateFile,
     deleteFile,
+    uploadFileToPanel,
 };

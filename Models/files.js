@@ -64,6 +64,19 @@ class Files {
     }
   }
 
+  static async getFilesByPanelId(panel_id) {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.query('SELECT * FROM files WHERE panel_id = ?', [panel_id]);
+      return rows.map((row) => new Files(row.id, row.url, row.user_id, row.panel_id));
+    } catch (error) {
+      console.error('Error fetching files by panel ID:', error);
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
   async deleteFile() {
     const connection = await pool.getConnection();
     try {

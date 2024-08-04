@@ -10,6 +10,10 @@ router.delete('/virtualDataRooms/:id', virtualDataRoomController.deleteVirtualDa
 router.post('/virtual-data-room/:id/download', virtualDataRoomController.downloadFile);
 router.post('/virtual-data-room/:id/edit', virtualDataRoomController.editContent);
 
-router.put('/virtualDataRooms/:id/view', virtualDataRoomController.incrementViewCount);
+router.put('/:id/view', virtualDataRoomController.incrementViewCount);
+
+router.get('/ids', virtualDataRoomController.getVirtualRoomIds);
+router.get('/user/:userId', virtualDataRoomController.getVirtualDataRoomsByUserId);
+router.get('/:id/viewCount', virtualDataRoomController.getViewCount);
 
 module.exports = router;

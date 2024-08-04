@@ -35,7 +35,7 @@ const getVirtualDataRoomById = async (req, res) => {
   try {
       const virtualDataRoom = await VirtualDataRoom.getVirtualDataRoomById(id);
       if (!virtualDataRoom) {
-          return res.status(404).send({ error: 'Virtual Data Room not found' });
+          return res.status(403).send({ error: 'Virtual Data Room not found' });
       }
       res.send(virtualDataRoom);
   } catch (error) {
@@ -43,6 +43,9 @@ const getVirtualDataRoomById = async (req, res) => {
       res.status(500).send({ error: 'An error occurred while fetching the virtual data room' });
   }
 };
+
+ 
+
 
 
 const createVirtualDataRoom = async (req, res) => {
@@ -67,10 +70,10 @@ const updateVirtualDataRoom = async (req, res) => {
     return;
   }
 
-  const ownerId = req.user.id; // assuming `req.user` contains the authenticated user's information
+ // assuming `req.user` contains the authenticated user's information
   const createdAt = new Date();
 
-  const virtualDataRoom = new VirtualDataRoom(id, name, ownerId, expiryDateTime, createdAt, access, defaultGuestPermission);
+  const virtualDataRoom = new VirtualDataRoom(id, name,  expiryDateTime, createdAt, access, defaultGuestPermission);
   try {
     await virtualDataRoom.updateVirtualDataRoom();
     res.json({ message: 'Virtual data room updated successfully' });
@@ -141,7 +144,19 @@ const editContent = async (req, res) => {
   }
 };
 
-
+const getViewCount = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).send('Invalid ID');
+    }
+    const viewCount = await VirtualDataRoom.getViewCount(id);
+    res.status(200).json({ viewCount });
+  } catch (error) {
+    console.error('Error getting view count:', error);
+    res.status(500).json({ message: 'Error getting view count', error });
+  }
+};
 
 
 const incrementViewCount = async (req, res) => {
@@ -159,17 +174,58 @@ const incrementViewCount = async (req, res) => {
     res.json({ message: 'View count incremented successfully', viewCount: virtualDataRoom.viewCount });
   } catch (error) {
     handleError(error, res);
+
+
   }
 };
 
 
+
+const getVirtualRoomIds = async (req, res) => {
+  try {
+    console.log('Request received to get virtual room IDs');
+    const ids = await VirtualDataRoom.getAllVirtualRoomIds();
+    console.log('IDs fetched successfully:', ids);
+    res.json(ids);
+  } catch (error) {
+    console.error('Error fetching virtual room IDs:', error);
+    res.status(500).json({ error: 'An error occurred while fetching virtual room IDs' });
+  }
+};
+
+const getVirtualDataRoomsByUserId = async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+
+  if (isNaN(userId)) {
+    return res.status(400).send({ error: 'Invalid User ID' });
+  }
+
+  try {
+    const virtualDataRooms = await VirtualDataRoom.getVirtualDataRoomsByUserId(userId);
+    if (virtualDataRooms.length === 0) {
+      return res.status(404).send({ error: 'No Virtual Data Rooms found for this user' });
+    }
+    res.send(virtualDataRooms);
+  } catch (error) {
+    console.error(`Error fetching virtual data rooms by user ID: ${error}`);
+    res.status(500).send({ error: 'An error occurred while fetching the virtual data rooms' });
+  }
+};
+
+
+
 module.exports = {
+ 
   getAllVirtualDataRooms,
   getVirtualDataRoomById,
+  getVirtualDataRoomsByUserId,
   createVirtualDataRoom,
   updateVirtualDataRoom,
   deleteVirtualDataRoom,
   downloadFile,
   editContent,
-  incrementViewCount
+  incrementViewCount,
+  getVirtualRoomIds,
+  getViewCount
+  
 };

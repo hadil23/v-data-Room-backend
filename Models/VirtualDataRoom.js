@@ -51,8 +51,8 @@ class VirtualDataRoom {
   }
 
   async updateVirtualDataRoom() {
-    const query = 'UPDATE virtual_data_rooms SET name = ?, ownerId = ?, expiryDateTime = ?, access = ?, defaultGuestPermission = ?, viewCount = ? WHERE id = ?';
-    const values = [this.name, this.ownerId, this.expiryDateTime, this.access, this.defaultGuestPermission, this.viewCount, this.id];
+    const query = 'UPDATE virtual_data_rooms SET name = ?,  expiryDateTime = ?, access = ?, defaultGuestPermission = ?, viewCount = ? WHERE id = ?';
+    const values = [this.name,  this.expiryDateTime, this.access, this.defaultGuestPermission, this.viewCount, this.id];
     try {
       await pool.query(query, values);
     } catch (error) {
@@ -70,6 +70,19 @@ class VirtualDataRoom {
     }
   }
 
+
+   getAllVirtualRoomIds = () => {
+    return new Promise((resolve, reject) => {
+      pool.query('SELECT id FROM virtual_data_rooms', (error, results) => {
+        if (error) {
+          return reject(error);
+        }
+        const ids = results.map(row => row.id);
+        resolve(ids);
+      });
+    });
+
+  };
   async incrementViewCount() {
     this.viewCount += 1;
     try {
@@ -79,12 +92,41 @@ class VirtualDataRoom {
       throw error;
     }
   }
+  static async getViewCount(id) {
+    try {
+      const [rows] = await pool.query(
+        "SELECT viewCount FROM virtual_data_rooms WHERE id = ?",
+        [id]
+      );
+      if (rows.length > 0) {
+        return rows[0].viewCount;
+      } else {
 
+        throw new Error("Virtual Data Room not found");
+      }
+    } catch (error) {
+      console.error("Error getting view count:", error);
+      throw error;
+    }
+  }
+
+  static async getVirtualDataRoomsByUserId(userId) {
+    try {
+      const [rows] = await pool.query('SELECT * FROM virtual_data_rooms WHERE ownerId = ?', [userId]);
+      return rows.map((row) => new VirtualDataRoom(row.id, row.name, row.ownerId, row.expiryDateTime, row.createdAt, row.access, row.defaultGuestPermission, row.viewCount));
+    } catch (error) {
+      console.error('Error fetching virtual data rooms by user ID:', error);
+      throw error;
+    }
+  }
+
+ 
   async canGuestPerformAction(guestId, action) {
     // Implémenter la logique pour vérifier si l'invité peut effectuer une action spécifique
     return true; // Placeholder pour l'exemple
   }
 }
+
 
 
 

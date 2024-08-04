@@ -6,6 +6,7 @@ class Panel {
     this.vdrId = vdrId;
     this.name = name;
   }
+  
 
   static async getAllPanels() {
     const connection = await pool.getConnection();
@@ -69,10 +70,37 @@ class Panel {
     }
   }
 
+  static async getPanelsByVdrId(vdrId) {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.query('SELECT id, vdrId, name FROM panel WHERE vdrId = ?', [vdrId]);
+      return rows.map((row) => new Panel(row.id, row.vdrId, row.name));
+    } catch (error) {
+      console.error('Error fetching panels by VDR ID:', error);
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+  static async getPanelsByVdrId(vdrId) {
+    const connection = await pool.getConnection();
+    try {
+      const [rows] = await connection.query('SELECT id, vdrId, name FROM panel WHERE vdrId = ?', [vdrId]);
+      return rows.map((row) => new Panel(row.id, row.vdrId, row.name));
+    } catch (error) {
+      Panel.handleError(error);
+    } finally {
+      connection.release();
+    }
+  }
+
   static handleError(error) {
     console.error(error);
     throw error;
   }
 }
+
+
+
 
 module.exports = Panel;

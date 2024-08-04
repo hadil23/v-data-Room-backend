@@ -95,12 +95,40 @@ async function savePanels(req, res) {
   }
 }
 
+async function getPanelsAndFilesByVdrId(req, res) {
+  const { vdrId } = req.params;
+  try {
+    const panels = await Panel.getPanelsByVdrId(vdrId);
+    const files = await Promise.all(panels.map(async (panel) => {
+      return {
+        panelId: panel.id,
+        files: await Panel.getFilesByPanelId(panel.id) // Assurez-vous que cette méthode existe
+      };
+    }));
+    res.status(200).json({ panels, files });
+  } catch (error) {
+    console.error('Error fetching panels and files by VDR ID:', error);
+    res.status(500).json({ error: 'An error occurred while fetching panels and files' });
+  }
+}
+async function getPanelsByVdrId(req, res) {
+  const { vdrId } = req.params;
+  try {
+    const panels = await Panel.getPanelsByVdrId(vdrId);
+    res.json(panels);
+  } catch (error) {
+    console.error('Error fetching panels by VDR ID:', error);
+    res.status(500).json({ error: 'An error occurred while fetching panels' });
+  }
+}
 
 module.exports = {
   getAllPanels,
   getPanelById,
+  getPanelsByVdrId,
   createPanel,
   updatePanel,
   deletePanel,
   savePanels,
+  getPanelsAndFilesByVdrId
 };
