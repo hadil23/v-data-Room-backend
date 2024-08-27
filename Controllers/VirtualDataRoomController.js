@@ -77,6 +77,7 @@ const updateVirtualDataRoom = async (req, res) => {
     }
 
     virtualDataRoom.name = name;
+    
     virtualDataRoom.expiryDateTime = expiryDateTime;
     virtualDataRoom.access = access;
     virtualDataRoom.defaultGuestPermission = defaultGuestPermission;

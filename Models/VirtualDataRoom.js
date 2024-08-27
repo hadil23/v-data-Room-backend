@@ -1,5 +1,5 @@
 const pool = require("../connection");
-
+const moment = require('moment');
 class VirtualDataRoom {
   constructor(id, name, ownerId, expiryDateTime, createdAt, access, defaultGuestPermission, viewCount = 0) {
     this.id = id;
@@ -51,8 +51,12 @@ class VirtualDataRoom {
   }
 
   async updateVirtualDataRoom() {
+    // Utiliser this.expiryDateTime au lieu de déclarer une nouvelle variable
+    const expiryDateTime = moment(this.expiryDateTime).format('YYYY-MM-DD HH:mm:ss');
+    
     const query = 'UPDATE virtual_data_rooms SET name = ?, expiryDateTime = ?, access = ?, defaultGuestPermission = ?, viewCount = ? WHERE id = ?';
-    const values = [this.name, this.expiryDateTime, this.access, this.defaultGuestPermission, this.viewCount, this.id];
+    
+    const values = [this.name, expiryDateTime, this.access, this.defaultGuestPermission, this.viewCount, this.id];
     try {
       await pool.query(query, values);
     } catch (error) {
@@ -60,6 +64,7 @@ class VirtualDataRoom {
       throw error;
     }
   }
+  
 
   async deleteVirtualDataRoom() {
     try {
