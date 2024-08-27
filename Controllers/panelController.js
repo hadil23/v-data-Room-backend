@@ -50,10 +50,11 @@ async function updatePanel(req, res) {
   const { vdrId, name } = req.body;
   try {
     await Panel.updatePanel(id, vdrId, name);
-    res.send('Panel updated');
+    res.json({ message: 'Panel updated' });
   } catch (error) {
     handleError(error);
     res.status(500).send('Server error');
+
   }
 }
 
@@ -82,9 +83,29 @@ async function savePanels(req, res) {
     // Vous pouvez utiliser le modèle Panel pour créer de nouveaux panels ou mettre à jour les panels existants dans la base de données
 
     // Exemple: créer un nouveau panel pour chaque élément de la liste des panels
-    const savedPanels = await Promise.all(panels.map(async panel => {
-      return await Panel.createPanel(virtualRoomId, panel.title);
-    }));
+    async function savePanels(req, res) {
+      const { virtualRoomId, panels } = req.body;
+      try {
+        if (!virtualRoomId || !panels) {
+          return res.status(400).send('Bad request: virtualRoomId and panels are required');
+        }
+    
+        // Supprimer les panels existants pour cette salle virtuelle avant d'enregistrer les nouveaux
+        await Panel.deletePanelsByVirtualRoomId(virtualRoomId);
+    
+        
+        // Créer ou mettre à jour les panels
+        const savedPanels = await Promise.all(panels.map(async panel => {
+          return await Panel.createOrUpdatePanel(virtualRoomId, panel.id, panel.title);
+        }));
+    
+        res.status(201).json(savedPanels);
+      } catch (error) {
+        console.error('Error saving panels:', error);
+        res.status(500).send('Server error');
+      }
+    }
+    
 
     // Envoyer une réponse avec les panels sauvegardés
     res.status(201).json(savedPanels);

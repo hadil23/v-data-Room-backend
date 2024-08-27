@@ -24,14 +24,26 @@ exports.getUserById = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     const { name, email, password, role } = req.body;
+    console.log('Creating user with:', { name, email, password, role }); // Log les données reçues
     const user = new User(null, name, email, password, role);
     try {
-        await user.createUser();
-        res.status(201).json({ message: 'User created successfully' });
+        const result = await user.createUser();
+        const newUser = {
+            id: result.insertId,
+            name: user.name,
+            email: user.email,
+            password: user.password,
+            role: user.role,
+        };
+        res.status(201).json(newUser);
     } catch (error) {
+        console.error('Error creating user:', error);
         res.status(500).json({ error: 'An error occurred' });
     }
 };
+
+  
+
 
 exports.updateUser = async (req, res) => {
     const { id } = req.params;
@@ -55,3 +67,26 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ error: 'An error occurred' });
     }
 };
+
+
+exports.loginUser = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+      console.log('Login attempt:', { email, password }); // Ajout d'un log pour vérifier les valeurs reçues
+      const user = await User.login(email, password);
+      if (user) {
+        res.json({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        });
+      } else {
+        res.status(401).json({ error: 'Invalid email or password' });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: 'An error occurred' });
+    }
+  };
+  

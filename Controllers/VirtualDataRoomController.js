@@ -25,6 +25,7 @@ const getAllVirtualDataRooms = async (req, res) => {
   }
 };
 
+
 const getVirtualDataRoomById = async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
@@ -64,23 +65,28 @@ const createVirtualDataRoom = async (req, res) => {
 
 const updateVirtualDataRoom = async (req, res) => {
   const id = parseInt(req.params.id);
-  const { name, expiryDateTime, access, defaultGuestPermission } = req.body;
+  const { name, expiryDateTime, defaultGuestPermission, access } = req.body;
   if (!id || !name || !expiryDateTime || !access || !defaultGuestPermission) {
-    res.status(400).send('Missing required fields');
-    return;
+    return res.status(400).send('Missing required fields');
   }
 
- // assuming `req.user` contains the authenticated user's information
-  const createdAt = new Date();
-
-  const virtualDataRoom = new VirtualDataRoom(id, name,  expiryDateTime, createdAt, access, defaultGuestPermission);
   try {
+    const virtualDataRoom = await VirtualDataRoom.getVirtualDataRoomById(id);
+    if (!virtualDataRoom) {
+      return res.status(404).send('Virtual data room not found');
+    }
+
+    virtualDataRoom.name = name;
+    virtualDataRoom.expiryDateTime = expiryDateTime;
+    virtualDataRoom.access = access;
+    virtualDataRoom.defaultGuestPermission = defaultGuestPermission;
     await virtualDataRoom.updateVirtualDataRoom();
     res.json({ message: 'Virtual data room updated successfully' });
   } catch (error) {
     handleError(error, res);
   }
 };
+
 
 const deleteVirtualDataRoom = async (req, res) => {
   const id = parseInt(req.params.id);

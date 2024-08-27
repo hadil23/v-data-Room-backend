@@ -56,13 +56,7 @@ exports.createInvitation = async (req, res, next) => {
       });
     }
 
-    const invitationExists = await Invitation.getInvitationByEmail(email);
-    if (invitationExists) {
-      return res.status(400).json({
-        success: false,
-        message: "Invitation already exists",
-      });
-    }
+  
    
 
     const newInvitation = new Invitation(

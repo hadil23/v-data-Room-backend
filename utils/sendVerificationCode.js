@@ -30,7 +30,7 @@ const sendVerificationCode = async (email, code, virtualDataRoomId, ) => {
     let emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
 
     // Génération du lien de vérification avec les paramètres nécessaires
-    const verificationLink = `http://localhost:4200/verify-email?id=${virtualDataRoomId}&email=${email}&code=${code}`;
+    const verificationLink = `http://localhost:4200/forms/verify-email?id=${virtualDataRoomId}&email=${email}&code=${code}`;
     emailTemplate = emailTemplate.replace("{{code}}", code);
     emailTemplate = emailTemplate.replace("{{verificationLink}}", verificationLink);
 

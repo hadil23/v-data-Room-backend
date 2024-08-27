@@ -51,8 +51,8 @@ class VirtualDataRoom {
   }
 
   async updateVirtualDataRoom() {
-    const query = 'UPDATE virtual_data_rooms SET name = ?,  expiryDateTime = ?, access = ?, defaultGuestPermission = ?, viewCount = ? WHERE id = ?';
-    const values = [this.name,  this.expiryDateTime, this.access, this.defaultGuestPermission, this.viewCount, this.id];
+    const query = 'UPDATE virtual_data_rooms SET name = ?, expiryDateTime = ?, access = ?, defaultGuestPermission = ?, viewCount = ? WHERE id = ?';
+    const values = [this.name, this.expiryDateTime, this.access, this.defaultGuestPermission, this.viewCount, this.id];
     try {
       await pool.query(query, values);
     } catch (error) {
