@@ -59,16 +59,7 @@ async function updatePanel(req, res) {
 }
 
 // Delete a panel
-async function deletePanel(req, res) {
-  const { id } = req.params;
-  try {
-    await Panel.deletePanel(id);
-    res.send('Panel deleted');
-  } catch (error) {
-    handleError(error);
-    res.status(500).send('Server error');
-  }
-}
+
 
 // Sauvegarder des panels dans la base de données
 async function savePanels(req, res) {
@@ -141,8 +132,18 @@ async function getPanelsByVdrId(req, res) {
     console.error('Error fetching panels by VDR ID:', error);
     res.status(500).json({ error: 'An error occurred while fetching panels' });
   }
+  
 }
-
+async function deletePanel(req, res) {
+  const { id } = req.params;
+  try {
+    await Panel.deletePanel(id);
+    res.send('Panel deleted');
+  } catch (error) {
+    handleError(error);
+    res.status(500).send('Server error');
+  }
+}
 module.exports = {
   getAllPanels,
   getPanelById,

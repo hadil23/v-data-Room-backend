@@ -41,7 +41,7 @@ class VirtualDataRoom {
     const query = 'INSERT INTO virtual_data_rooms (name, ownerId, expiryDateTime, createdAt, access, defaultGuestPermission, viewCount) VALUES (?, ?, ?, ?, ?, ?, ?)';
     const values = [this.name, this.ownerId, this.expiryDateTime, this.createdAt, this.access, this.defaultGuestPermission, this.viewCount];
     try {
-      const [result] = await pool.query(query, values);
+     const [result] = await pool.query(query, values);
       this.id = result.insertId;
       return this;
     } catch (error) {
